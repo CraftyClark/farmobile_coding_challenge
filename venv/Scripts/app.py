@@ -25,9 +25,16 @@ def returnUniqueCanCount():
 
 @app.route('/total-runtime')
 def returnTotalRuntime():
-    total_runtime_object = latest_timestamp - earliest_timestamp
-    total_runtime = total_runtime_object.days * 24 * 3600 + total_runtime_object.seconds
     return str(total_runtime)
+
+@app.route('/average-can-messages')
+def returnAvgCanMessages():
+    # find average CAN messages per second of runtime
+    avg_can_per_second_runtime = can_messages_count / total_runtime
+    # find average CAN messages per GPS message
+    avg_can_per_gps_message = can_messages_count / gps_messages_count
+    # return both values
+    return "{}, {}".format(avg_can_per_second_runtime, avg_can_per_gps_message)
 
 
 def totalUniqueCanMessages(id, unique_can_messages_count):
@@ -47,6 +54,10 @@ def convertDateToDateObject(date_string):
     return current_row_date
 
 
+def calculateRunTime(latest_timestamp, earliest_timestamp):
+    total_runtime_object = latest_timestamp - earliest_timestamp
+    total_runtime = total_runtime_object.days * 24 * 3600 + total_runtime_object.seconds
+    return total_runtime
 
 def lookAtData():
 
@@ -62,6 +73,8 @@ def lookAtData():
     # initialize latest timestamp using a far past date
     global latest_timestamp
     latest_timestamp = datetime(1000, 1, 1)
+    global total_runtime
+    total_runtime = 0
 
     with open(filename) as csvfile:  
         data = csv.DictReader(csvfile)
@@ -89,7 +102,8 @@ def lookAtData():
                 can_messages_count += 1
                 unique_can_messages_count = totalUniqueCanMessages(current_message_id, unique_can_messages_count)
 
-
+    # find total runtime of the data in the the file
+    total_runtime = calculateRunTime(latest_timestamp, earliest_timestamp)
 
 
 
