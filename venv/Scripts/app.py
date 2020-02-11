@@ -5,8 +5,7 @@ import time
 from datetime import datetime, timedelta
 from collections import Counter
 
-filename = '../Include/custom_data.csv'
-# filename = '../Include/gps_can_data.csv'
+filename = '../Include/gps_can_data.csv'
 app = Flask(__name__)
 
 
@@ -108,6 +107,7 @@ def lookAtData():
     # initialize variables
     gps_messages_count = can_messages_count = unique_can_messages_count = 0
     total_runtime = ts_most_can_messages = ts_least_can_messages = 0
+    current_row_count = 1 # initialize to 1 to account for row of column names
     
     # initialize timestamp variables using datetime max and min
     # max date is used for the earliest timestamp variable to give ourselves a value to compare to in the future when 
@@ -125,12 +125,14 @@ def lookAtData():
         with open(filename) as csvfile:  
             data = csv.DictReader(csvfile)
             for row in data:
+                # increment row count for empty row logging purposes
+                current_row_count += 1
                 # handle total runtime of data in file
                 # get date object using date string from column 'ts'
                 try:
                     current_row_date = convertDateToDateObject(row['ts'])
                 except:
-                    logging.warning('current row has no timestamp value')
+                    logging.warning('row {} has no timestamp value'.format(current_row_count)) 
 
                 # check if current date is the earliest or latest 
                 if current_row_date < earliest_timestamp:
@@ -156,6 +158,9 @@ def lookAtData():
 
                     # tally timestamp occurrence in Counter
                     counter_dictionary[row['ts']] += 1
+                else:
+                    # if both message_id and gps_id are empty; log warning
+                    logging.warning('row {} has no values for message_id or gps_id'.format(current_row_count))
     except:
         logging.critical('Unable to open CSV file. Please check that the correct filename is being used on line 8 of app.py')
         exit(0)
@@ -182,9 +187,10 @@ def lookAtData():
 if __name__ == '__main__':
     # start time to track program execution speed
     starttime = time.time()
+    logging.info('reading in input CSV data file: {}'.format(filename))
     # call function to begin program
     lookAtData()
-    # print program's run time to console
-    print("Program run time = {} seconds".format(time.time() - starttime))
+    # log the program's run time
+    logging.info("Program run time = {} seconds".format(time.time() - starttime))
     # run flask application
     app.run()
