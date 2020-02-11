@@ -1,4 +1,5 @@
 from flask import Flask, jsonify
+import logging
 import csv
 import time
 from datetime import datetime, timedelta
@@ -6,8 +7,6 @@ from collections import Counter
 
 filename = '../Include/custom_data.csv'
 # filename = '../Include/gps_can_data.csv'
-
-
 app = Flask(__name__)
 
 
@@ -67,6 +66,7 @@ def returnLeastCanMessages():
 
 
 def totalUniqueCanMessages(id, unique_can_messages_count, can_messages_dict):
+    """Determines if given message id is unique and returns the current count of unique CAN messages."""
     if id in can_messages_dict:
         can_messages_dict[id] += 1
     else:
@@ -78,50 +78,58 @@ def totalUniqueCanMessages(id, unique_can_messages_count, can_messages_dict):
 
 
 def convertDateToDateObject(date_string):
+    """Converts date string into date object."""
     # save date string into date object: current_row_date
     current_row_date = datetime.strptime(date_string, '%Y-%m-%d %H:%M:%S')
     return current_row_date
 
 
 def calculateRunTime(latest_timestamp, earliest_timestamp):
+    """Calculates the total runtime of the data using the earliest and latest timestamps."""
     total_runtime_object = latest_timestamp - earliest_timestamp
     total_runtime = total_runtime_object.days * 24 * 3600 + total_runtime_object.seconds
     return total_runtime
 
 
 def findFirstKeyUsingValue(sorted_counter, ts_value):
+    """Finds the first key in the dictionary where the key's value matches the given timestamp count value."""
     for key, value in sorted_counter:
         if value == ts_value:
             return key
 
 
 def lookAtData():
+    """Calculates for the requested data using the input data CSV file."""
 
     # declare global variables
-    global gps_messages_count, can_messages_count, unique_can_messages_count, earliest_timestamp
-    global latest_timestamp, total_runtime, cnt, ts_most_can_messages, ts_least_can_messages, can_messages_dict
+    global gps_messages_count, can_messages_count, unique_can_messages_count, earliest_timestamp, latest_timestamp
+    global total_runtime, counter_dictionary, ts_most_can_messages, ts_least_can_messages, can_messages_dict
 
     # initialize variables
     gps_messages_count = can_messages_count = unique_can_messages_count = 0
     total_runtime = ts_most_can_messages = ts_least_can_messages = 0
     
     # initialize timestamp variables using datetime max and min
-    earliest_timestamp = datetime.date.max
-    latest_timestamp = datetime.date.min
-    
+    # max date is used for the earliest timestamp variable to give ourselves a value to compare to in the future when 
+    # ... trying to find the earliest timestamp in the file; the same strategy is used for the latest timestamp variable
+    earliest_timestamp = datetime.max
+    latest_timestamp = datetime.min
+
     # declare a new empty Counter
-    cnt = Counter()
+    counter_dictionary = Counter()
     # initalize dictionary for CAN messages
     can_messages_dict = {}
 
-
+    # open input CSV file
     with open(filename) as csvfile:  
         data = csv.DictReader(csvfile)
         for row in data:
-            
             # handle total runtime of data in file
-            # get date object from date string
-            current_row_date = convertDateToDateObject(row['ts'])
+            # get date object using date string from column 'ts'
+            try:
+                current_row_date = convertDateToDateObject(row['ts'])
+            except:
+                logging.warning('current row has no timestamp value')
 
             # check if current date is the earliest or latest 
             if current_row_date < earliest_timestamp:
@@ -129,44 +137,42 @@ def lookAtData():
             elif current_row_date > latest_timestamp:
                 latest_timestamp = current_row_date
 
+            # create variables to store string data for current row in data file
             current_gps_id = row['gps_id']
             current_message_id = row['message_id']
 
-            # if current row has gps id, it's a GPS message
+            # determine if current row is a GPS or CAN message
+            # keep a running count for both message types
             if current_gps_id:
+                # current row is a GPS message
                 gps_messages_count += 1
 
-            # else if current row has message id, it's a CAN message
             elif current_message_id:
+                # current row is a CAN message
                 can_messages_count += 1
                 # find total unique CAN messages
                 unique_can_messages_count = totalUniqueCanMessages(current_message_id, unique_can_messages_count, can_messages_dict)
 
-                # find first timestamp that contains the most CAN messages
-                # use the current row date string
-                # create a counter
-                cnt[row['ts']] += 1
-
-
+                # tally timestamp occurrence in Counter
+                counter_dictionary[row['ts']] += 1
 
     # find total runtime of the data in the the file
     total_runtime = calculateRunTime(latest_timestamp, earliest_timestamp)
 
-    # find first timestamp that contains the most CAN messages
-    ts_most_value = cnt.most_common()[0][1]
+    # find integer value representing the largest number of CAN message occurrences for any timestamp
+    ts_most_value = counter_dictionary.most_common()[0][1]
 
-    # find the first timestamp that contains the least CAN messages
-    # cnt = sorted(cnt.items())
-
-
-    ts_least_can_messages = cnt.most_common()[:-2:-1]
+    # find integer value representing the smallest number of CAN message occurrences for any timestamp
+    ts_least_can_messages = counter_dictionary.most_common()[:-2:-1]
     ts_least_value = ts_least_can_messages[0][1]
 
-    sorted_counter = sorted(cnt.items())
+    # use the sorted method to use the counter dictionary to create a list of sorted tuples
+    # this list of sorted tuples will be sorted by 
+    sorted_counter = sorted(counter_dictionary.items())
 
+    # find the first timestamps for which contain the corresponding most and least CAN messages
     ts_most_can_messages =  findFirstKeyUsingValue(sorted_counter, ts_most_value)
     ts_least_can_messages =  findFirstKeyUsingValue(sorted_counter, ts_least_value)
-
 
 
 if __name__ == '__main__':
@@ -178,5 +184,3 @@ if __name__ == '__main__':
     print("Program run time = {} seconds".format(time.time() - starttime))
     # run flask application
     app.run()
-
-    
