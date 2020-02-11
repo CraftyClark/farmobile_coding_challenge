@@ -121,40 +121,44 @@ def lookAtData():
     can_messages_dict = {}
 
     # open input CSV file
-    with open(filename) as csvfile:  
-        data = csv.DictReader(csvfile)
-        for row in data:
-            # handle total runtime of data in file
-            # get date object using date string from column 'ts'
-            try:
-                current_row_date = convertDateToDateObject(row['ts'])
-            except:
-                logging.warning('current row has no timestamp value')
+    try:
+        with open(filename) as csvfile:  
+            data = csv.DictReader(csvfile)
+            for row in data:
+                # handle total runtime of data in file
+                # get date object using date string from column 'ts'
+                try:
+                    current_row_date = convertDateToDateObject(row['ts'])
+                except:
+                    logging.warning('current row has no timestamp value')
 
-            # check if current date is the earliest or latest 
-            if current_row_date < earliest_timestamp:
-                earliest_timestamp = current_row_date
-            elif current_row_date > latest_timestamp:
-                latest_timestamp = current_row_date
+                # check if current date is the earliest or latest 
+                if current_row_date < earliest_timestamp:
+                    earliest_timestamp = current_row_date
+                elif current_row_date > latest_timestamp:
+                    latest_timestamp = current_row_date
 
-            # create variables to store string data for current row in data file
-            current_gps_id = row['gps_id']
-            current_message_id = row['message_id']
+                # create variables to store string data for current row in data file
+                current_gps_id = row['gps_id']
+                current_message_id = row['message_id']
 
-            # determine if current row is a GPS or CAN message
-            # keep a running count for both message types
-            if current_gps_id:
-                # current row is a GPS message
-                gps_messages_count += 1
+                # determine if current row is a GPS or CAN message
+                # keep a running count for both message types
+                if current_gps_id:
+                    # current row is a GPS message
+                    gps_messages_count += 1
 
-            elif current_message_id:
-                # current row is a CAN message
-                can_messages_count += 1
-                # find total unique CAN messages
-                unique_can_messages_count = totalUniqueCanMessages(current_message_id, unique_can_messages_count, can_messages_dict)
+                elif current_message_id:
+                    # current row is a CAN message
+                    can_messages_count += 1
+                    # find total unique CAN messages
+                    unique_can_messages_count = totalUniqueCanMessages(current_message_id, unique_can_messages_count, can_messages_dict)
 
-                # tally timestamp occurrence in Counter
-                counter_dictionary[row['ts']] += 1
+                    # tally timestamp occurrence in Counter
+                    counter_dictionary[row['ts']] += 1
+    except:
+        logging.critical('Unable to open CSV file. Please check that the correct filename is being used on line 8 of app.py')
+        exit(0)
 
     # find total runtime of the data in the the file
     total_runtime = calculateRunTime(latest_timestamp, earliest_timestamp)
