@@ -1,0 +1,20 @@
+Datetime module
+https://docs.python.org/3.2/library/datetime.html
+
+Counter from collections
+https://docs.python.org/2/library/collections.html
+
+Try/ Except
+https://docs.python.org/3/tutorial/errors.html
+
+Logging
+https://docs.python.org/3/howto/logging.html
+
+Get the earliest and latest representable datetimes
+https://kite.com/python/examples/3005/datetime-get-the-earliest-and-latest-representable-datetimes
+
+Install Flask and virtualenv
+https://flask.palletsprojects.com/en/1.1.x/installation/
+
+Flask application and routing
+https://flask.palletsprojects.com/en/1.1.x/quickstart/#routing
