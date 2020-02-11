@@ -1,6 +1,7 @@
 # farmobile_coding_challenge
  software developer coding challenge for farmobile
 
+Instructions for this coding challenge are described in the pdf file, 'Farmobile Coding Challenge_Software', located in the same directory as this README.md file
 
 Where to locate app.py?
 1. I followed installation instructions for Flask and virtualenv linked here -> https://flask.palletsprojects.com/en/1.1.x/installation/
@@ -36,6 +37,7 @@ Other files included in this folder, and what they are:
 2. routing_documentation_for_requested_data.txt: list of routing urls for testing the program
 3. README.md: this document you're reading, which provides clarity and instructions on how to run program
 4. program_results_screenshot.PNG: screenshots of all the program's output put into one image file
+5. Farmobile Coding Challenge_Software.pdf: complete instructions for this coding challenge
 
 
 Thank you for taking the time to look over my project. 
