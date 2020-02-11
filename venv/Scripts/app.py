@@ -8,8 +8,6 @@ filename = '../Include/custom_data.csv'
 # filename = '../Include/gps_can_data.csv'
 
 
-starttime = time.time()
-
 app = Flask(__name__)
 
 
@@ -99,29 +97,22 @@ def findFirstKeyUsingValue(sorted_counter, ts_value):
 
 def lookAtData():
 
-    global gps_messages_count 
-    gps_messages_count = 0
-    global can_messages_count 
-    can_messages_count = 0
-    global unique_can_messages_count
-    unique_can_messages_count = 0
-    # initialize earliest timestamp using a far future date
-    global earliest_timestamp
-    earliest_timestamp = datetime(3000, 1, 1)
-    # initialize latest timestamp using a far past date
-    global latest_timestamp
-    latest_timestamp = datetime(1000, 1, 1)
-    global total_runtime
-    total_runtime = 0
-    global cnt
-    cnt = Counter()
-    global ts_most_can_messages
-    ts_most_can_messages = 0
-    global ts_least_can_messages
-    ts_least_can_messages = 0
-    global can_messages_dict
-    can_messages_dict = {}
+    # declare global variables
+    global gps_messages_count, can_messages_count, unique_can_messages_count, earliest_timestamp
+    global latest_timestamp, total_runtime, cnt, ts_most_can_messages, ts_least_can_messages, can_messages_dict
 
+    # initialize variables
+    gps_messages_count = can_messages_count = unique_can_messages_count = 0
+    total_runtime = ts_most_can_messages = ts_least_can_messages = 0
+    
+    # initialize timestamp variables using datetime max and min
+    earliest_timestamp = datetime.date.max
+    latest_timestamp = datetime.date.min
+    
+    # declare a new empty Counter
+    cnt = Counter()
+    # initalize dictionary for CAN messages
+    can_messages_dict = {}
 
 
     with open(filename) as csvfile:  
@@ -179,8 +170,13 @@ def lookAtData():
 
 
 if __name__ == '__main__':
+    # start time to track program execution speed
+    starttime = time.time()
+    # call function to begin program
     lookAtData()
+    # print program's run time to console
     print("Program run time = {} seconds".format(time.time() - starttime))
-    app.run(debug=True)
+    # run flask application
+    app.run()
 
     
