@@ -1,0 +1,15 @@
+REQUESTED DATA:  ----------------------    
+1. Total GPS messages
+    http://127.0.0.1:5000/total-gps
+2. Total CAN messages  
+    http://127.0.0.1:5000/total-can
+3. Total unique CAN messages (for purposes of this count message_id define a unique CAN message)
+    http://127.0.0.1:5000/total-unique-can
+4. Total run time of the data in the file base on the ts (timestamps)
+    http://127.0.0.1:5000/total-runtime
+5. Average CAN messages per second of run time and per gps message  
+    http://127.0.0.1:5000/average-can-messages
+6. The first ts (timestamp) that contains the most CAN messages  
+    http://127.0.0.1:5000/most-can-messages
+7. The first ts (timestamp) that contains the least CAN messages
+    http://127.0.0.1:5000/least-can-messages
