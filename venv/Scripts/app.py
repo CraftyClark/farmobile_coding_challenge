@@ -1,32 +1,45 @@
-from flask import Flask
+from flask import Flask, jsonify
 import csv
 import time
 from datetime import datetime, timedelta
 from collections import Counter
 
 filename = '../Include/custom_data.csv'
+# filename = '../Include/gps_can_data.csv'
+
 
 starttime = time.time()
 
-can_messages_dict = {}
-
 app = Flask(__name__)
+
 
 @app.route('/total-gps')
 def returnGpsCount():
-    return str(gps_messages_count)
+    return jsonify(
+        total_gps = str(gps_messages_count)
+    )
+
 
 @app.route('/total-can')
 def returnCanCount():
-    return str(can_messages_count)
+    return jsonify(
+        total_can = str(can_messages_count)
+    )
+
 
 @app.route('/total-unique-can')
 def returnUniqueCanCount():
-    return str(unique_can_messages_count)
+    return jsonify(
+        total_unique_can = str(unique_can_messages_count)
+    )
+
 
 @app.route('/total-runtime')
 def returnTotalRuntime():
-    return str(total_runtime)
+    return jsonify(
+        total_runtime = str(total_runtime)
+    )
+
 
 @app.route('/average-can-messages')
 def returnAvgCanMessages():
@@ -35,20 +48,27 @@ def returnAvgCanMessages():
     # find average CAN messages per GPS message
     avg_can_per_gps_message = can_messages_count / gps_messages_count
     # return both values
-    return "{}, {}".format(avg_can_per_second_runtime, avg_can_per_gps_message)
+    return jsonify(
+        average_can_per_second_runtime = avg_can_per_second_runtime,
+        avg_can_per_gps_message = avg_can_per_gps_message
+    )
 
 
 @app.route('/most-can-messages')
 def returnMostCanMessages():
-    return ts_most_can_messages
+    return jsonify(
+        most_can_messages = ts_most_can_messages
+    )
 
 
 @app.route('/least-can-messages')
 def returnLeastCanMessages():
-    return ts_least_can_messages
+    return jsonify(
+        least_can_messages = ts_least_can_messages
+    )
 
 
-def totalUniqueCanMessages(id, unique_can_messages_count):
+def totalUniqueCanMessages(id, unique_can_messages_count, can_messages_dict):
     if id in can_messages_dict:
         can_messages_dict[id] += 1
     else:
@@ -93,14 +113,16 @@ def lookAtData():
     latest_timestamp = datetime(1000, 1, 1)
     global total_runtime
     total_runtime = 0
-
     global cnt
     cnt = Counter()
-
     global ts_most_can_messages
     ts_most_can_messages = 0
     global ts_least_can_messages
     ts_least_can_messages = 0
+    global can_messages_dict
+    can_messages_dict = {}
+
+
 
     with open(filename) as csvfile:  
         data = csv.DictReader(csvfile)
@@ -127,7 +149,7 @@ def lookAtData():
             elif current_message_id:
                 can_messages_count += 1
                 # find total unique CAN messages
-                unique_can_messages_count = totalUniqueCanMessages(current_message_id, unique_can_messages_count)
+                unique_can_messages_count = totalUniqueCanMessages(current_message_id, unique_can_messages_count, can_messages_dict)
 
                 # find first timestamp that contains the most CAN messages
                 # use the current row date string
